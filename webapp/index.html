@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Help Desk – Buchung Tool</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #0f1117; color: #e2e8f0; min-height: 100vh; }
+
+    header {
+      background: #1a1d27; border-bottom: 1px solid #2d3148;
+      padding: 16px 32px; display: flex; align-items: center; gap: 12px;
+    }
+    header h1 { font-size: 18px; font-weight: 600; color: #a78bfa; }
+    header span { font-size: 13px; color: #64748b; }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+    .card { background: #1a1d27; border: 1px solid #2d3148; border-radius: 12px; padding: 24px; }
+    .card h2 { font-size: 14px; font-weight: 600; color: #a78bfa; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 20px; }
+
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 6px; font-weight: 500; }
+    .field input, .field select, .field textarea {
+      width: 100%; background: #0f1117; border: 1px solid #2d3148; border-radius: 8px;
+      color: #e2e8f0; padding: 10px 12px; font-size: 14px; font-family: inherit; transition: border-color .2s;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: #7c3aed; }
+    .field textarea { resize: vertical; min-height: 80px; }
+    .field select option { background: #1a1d27; }
+
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+    .toggle-row { display: flex; gap: 8px; align-items: center; margin-bottom: 16px; }
+    .toggle-row label { font-size: 12px; color: #94a3b8; }
+    .toggle-row input[type=checkbox] { accent-color: #7c3aed; width: 16px; height: 16px; cursor: pointer; }
+
+    .btn {
+      width: 100%; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: 600;
+      cursor: pointer; border: none; transition: all .2s;
+    }
+    .btn-primary { background: #7c3aed; color: white; }
+    .btn-primary:hover { background: #6d28d9; }
+    .btn-copy { background: #1e293b; color: #94a3b8; border: 1px solid #2d3148; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; transition: all .2s; }
+    .btn-copy:hover { background: #2d3148; color: #e2e8f0; }
+    .btn-copy.copied { background: #14532d; color: #4ade80; border-color: #166534; }
+
+    .output-block { margin-bottom: 20px; }
+    .output-label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .output-label span { font-size: 12px; color: #94a3b8; font-weight: 500; text-transform: uppercase; letter-spacing: .05em; }
+    .output-text {
+      background: #0f1117; border: 1px solid #2d3148; border-radius: 8px;
+      padding: 12px; font-size: 13px; font-family: 'Cascadia Code', 'Consolas', monospace;
+      color: #e2e8f0; white-space: pre-wrap; word-break: break-all; min-height: 60px;
+      line-height: 1.6;
+    }
+    .output-text.mail { font-family: 'Segoe UI', sans-serif; word-break: normal; }
+    .output-text.empty { color: #475569; font-style: italic; font-family: 'Segoe UI', sans-serif; }
+
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+    .badge-de { background: #1e3a5f; color: #60a5fa; }
+    .badge-fr { background: #1e3a3a; color: #34d399; }
+    .badge-en { background: #2d1a1a; color: #f87171; }
+    .badge-prio { background: #3b1a5f; color: #c084fc; }
+
+    #lang-badge { margin-left: 8px; }
+
+    .hint { font-size: 11px; color: #475569; margin-top: 4px; }
+    .hidden { display: none; }
+
+    .steps-helper { font-size: 11px; color: #64748b; margin-top: 4px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Help Desk – Buchung Tool</h1>
+  <span>VI2VI / Lidl · Primark IT Support</span>
+</header>
+
+<div class="container">
+
+  <!-- LEFT: FORM -->
+  <div class="card">
+    <h2>Case Details</h2>
+
+    <div class="row">
+      <div class="field">
+        <label>Country Code <span id="lang-badge"></span></label>
+        <input type="text" id="country" maxlength="2" placeholder="CZ, DE, FR, PL…" oninput="this.value=this.value.toUpperCase(); updateLangBadge();" />
+      </div>
+      <div class="field">
+        <label>Channel</label>
+        <select id="channel" onchange="toggleSubjectField()">
+          <option value="Email">Email</option>
+          <option value="Phone">Phone</option>
+          <option value="Ticket">Ticket</option>
+          <option value="Onsite">Onsite</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>Store Number</label>
+        <input type="text" id="store" placeholder="0183" />
+      </div>
+      <div class="field">
+        <label>Customer Type</label>
+        <select id="customer_type">
+          <option value="Lidl">Lidl</option>
+          <option value="Primark">Primark</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="toggle-row">
+      <input type="checkbox" id="filler_check" onchange="toggleFiller()" />
+      <label for="filler_check">No store number → FILLER</label>
+      <input type="checkbox" id="wh_check" onchange="toggleWarehouse()" style="margin-left:16px;" />
+      <label for="wh_check">Warehouse (WH)</label>
+    </div>
+
+    <div class="field hidden" id="wh_field">
+      <label>Warehouse Name</label>
+      <input type="text" id="wh_name" placeholder="e.g. Berlin Nord" />
+    </div>
+
+    <div class="field">
+      <label>Errichter / Installer</label>
+      <input type="text" id="errichter" placeholder="Signal, Securitas, +49 170 … (leave empty for Lidl only)" />
+    </div>
+
+    <div class="field">
+      <label>HW / SW</label>
+      <input type="text" id="hw_sw" placeholder="QVMS, VMS/QVMS, Decoder, Camera, Server…" list="hw_suggestions"/>
+      <datalist id="hw_suggestions">
+        <option value="QVMS"/>
+        <option value="VMS/QVMS"/>
+        <option value="VMS-Software"/>
+        <option value="Decoder"/>
+        <option value="Camera"/>
+        <option value="Server"/>
+        <option value="Server/QVMS"/>
+        <option value="Server/HW"/>
+        <option value="Network"/>
+        <option value="Client/QVMS"/>
+        <option value="NVR"/>
+        <option value="DVR"/>
+      </datalist>
+    </div>
+
+    <div class="field">
+      <label>Problem (keywords)</label>
+      <input type="text" id="problem" placeholder="Cameras not recording – QVMS not reachable" />
+    </div>
+
+    <div class="field">
+      <label>Solution Steps</label>
+      <textarea id="solution" placeholder="Checked QVMS -> error -50412 -> checked server -> server reachable -> corrected drive letters -> restarted VMS services -> cameras recording"></textarea>
+      <div class="steps-helper">Separate steps with " -> " · They will be formatted automatically</div>
+    </div>
+
+    <div class="field">
+      <label>Fazit</label>
+      <input type="text" id="fazit" placeholder="Issue resolved / Waiting for feedback / System OK" />
+    </div>
+
+    <div class="field" id="subject_field">
+      <label>Email / Ticket Subject or Reference</label>
+      <input type="text" id="subject" placeholder="NSR6041039 or email subject" />
+    </div>
+
+    <div class="field">
+      <label>Duration (for ZEP)</label>
+      <input type="text" id="duration" placeholder="e.g. 00:45 or 1h30" />
+    </div>
+
+    <button class="btn btn-primary" onclick="generate()">Generate Buchung + Mail</button>
+  </div>
+
+  <!-- RIGHT: OUTPUT -->
+  <div class="card">
+    <h2>Output</h2>
+
+    <div class="output-block">
+      <div class="output-label">
+        <span>Buchung (ZEP)</span>
+        <button class="btn-copy" onclick="copyText('buchung_out', this)">Copy</button>
+      </div>
+      <div class="output-text empty" id="buchung_out">Fill in the form and click Generate…</div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-label">
+        <span>ZEP Duration</span>
+        <button class="btn-copy" onclick="copyText('duration_out', this)">Copy</button>
+      </div>
+      <div class="output-text empty" id="duration_out">—</div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-label">
+        <span>Mail Subject</span>
+        <button class="btn-copy" onclick="copyText('mail_subject_out', this)">Copy</button>
+      </div>
+      <div class="output-text empty" id="mail_subject_out">—</div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-label">
+        <span>Mail Body</span>
+        <button class="btn-copy" onclick="copyText('mail_body_out', this)">Copy</button>
+      </div>
+      <div class="output-text mail empty" id="mail_body_out">—</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function updateLangBadge() {
+    const cc = document.getElementById('country').value.toUpperCase();
+    const badge = document.getElementById('lang-badge');
+    if (cc === 'DE') badge.innerHTML = '<span class="badge badge-de">Deutsch</span>';
+    else if (cc === 'FR') badge.innerHTML = '<span class="badge badge-fr">Français</span>';
+    else if (cc.length === 2) badge.innerHTML = '<span class="badge badge-en">English</span>';
+    else badge.innerHTML = '';
+  }
+
+  function toggleSubjectField() {
+    const ch = document.getElementById('channel').value;
+    document.getElementById('subject_field').classList.toggle('hidden', ch === 'Phone' || ch === 'Onsite');
+  }
+
+  function toggleFiller() {
+    const checked = document.getElementById('filler_check').checked;
+    document.getElementById('store').disabled = checked;
+    if (checked) document.getElementById('store').value = '';
+  }
+
+  function toggleWarehouse() {
+    const checked = document.getElementById('wh_check').checked;
+    document.getElementById('wh_field').classList.toggle('hidden', !checked);
+    document.getElementById('store').disabled = checked;
+    if (checked) document.getElementById('filler_check').checked = false;
+  }
+
+  function getLang(cc) {
+    if (cc === 'DE') return 'de';
+    if (cc === 'FR') return 'fr';
+    return 'en';
+  }
+
+  function buildBuchung() {
+    const cc = document.getElementById('country').value.toUpperCase();
+    let store;
+    if (document.getElementById('wh_check').checked) {
+      store = 'WH ' + (document.getElementById('wh_name').value.trim() || 'FILLER');
+    } else if (document.getElementById('filler_check').checked) {
+      store = 'FILLER';
+    } else {
+      store = document.getElementById('store').value.trim() || 'FILLER';
+    }
+    const channel = document.getElementById('channel').value;
+    const custType = document.getElementById('customer_type').value;
+    const errichter = document.getElementById('errichter').value.trim();
+    const customer = errichter ? `${custType}/${errichter}` : custType;
+    const hwSw = document.getElementById('hw_sw').value.trim();
+    const problem = document.getElementById('problem').value.trim();
+    const solution = document.getElementById('solution').value.trim();
+    const fazit = document.getElementById('fazit').value.trim();
+    const subject = document.getElementById('subject').value.trim();
+
+    let buchung = `${cc}|${store}|${channel}|${customer}|${hwSw}|${problem}|${solution}|${fazit}`;
+    if (channel === 'Email' || channel === 'Ticket') {
+      buchung += `|"${subject || 'FILLER BETREFF'}"`;
+    }
+    return buchung;
+  }
+
+  function buildMail() {
+    const cc = document.getElementById('country').value.toUpperCase();
+    const lang = getLang(cc);
+    const fazit = document.getElementById('fazit').value.toLowerCase();
+    const subject = document.getElementById('subject').value.trim();
+    const channel = document.getElementById('channel').value;
+    const resolved = /resolv|behoben|résolu|ok|fixed|corrected|operational/.test(fazit);
+
+    const mailSubject = subject ? `Re: ${subject}` : 'Re: [Reference]';
+
+    let body;
+    if (lang === 'de') {
+      body = resolved
+        ? `Sehr geehrte Damen und Herren,\n\nnach Überprüfung des Systems konnte ich das gemeldete Problem identifizieren und beheben. Das System ist nun wieder vollständig funktionsfähig.\n\nBitte bestätigen Sie uns, dass alles auf Ihrer Seite korrekt funktioniert.\n\nMit freundlichen Grüßen,\nHelp Desk – VI2VI`
+        : `Sehr geehrte Damen und Herren,\n\nwir haben Ihre Meldung erhalten und bearbeiten diese derzeit. Wir werden Sie über den Fortschritt informieren.\n\nMit freundlichen Grüßen,\nHelp Desk – VI2VI`;
+    } else if (lang === 'fr') {
+      body = resolved
+        ? `Bonjour,\n\nAprès vérification du système, j'ai pu identifier et résoudre le problème signalé. Le système est maintenant pleinement opérationnel.\n\nPourriez-vous confirmer que tout fonctionne correctement de votre côté ?\n\nCordialement,\nHelp Desk – VI2VI`
+        : `Bonjour,\n\nNous avons bien reçu votre signalement et le traitons actuellement. Nous vous tiendrons informé de l'avancement.\n\nCordialement,\nHelp Desk – VI2VI`;
+    } else {
+      body = resolved
+        ? `Hello,\n\nAfter checking the system, I found and was able to resolve the reported issue. The system is now fully operational again.\n\nPlease confirm that everything is working correctly on your side.\n\nBest regards,\nHelp Desk – VI2VI`
+        : `Hello,\n\nWe have received your report and are currently working on it. We will keep you updated on the progress.\n\nBest regards,\nHelp Desk – VI2VI`;
+    }
+
+    return { subject: mailSubject, body };
+  }
+
+  function generate() {
+    const buchung = buildBuchung();
+    const mail = buildMail();
+    const duration = document.getElementById('duration').value.trim();
+
+    setOutput('buchung_out', buchung, false);
+    setOutput('duration_out', duration || '—', !duration);
+    setOutput('mail_subject_out', mail.subject, false);
+    setOutput('mail_body_out', mail.body, false);
+  }
+
+  function setOutput(id, text, isEmpty) {
+    const el = document.getElementById(id);
+    el.textContent = text;
+    el.classList.toggle('empty', isEmpty);
+  }
+
+  function copyText(id, btn) {
+    const text = document.getElementById(id).textContent;
+    if (!text || text === '—') return;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'Copied ✓';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+
+  updateLangBadge();
+  toggleSubjectField();
+</script>
+</body>
+</html>
