@@ -11,6 +11,12 @@ Checks:
   3. Reminders due (in-progress since >= 3 days, mail sent, no reminder yet)
   4. Priority countries stuck in backlog (DE, PL, ES)
   5. Booking format compliance
+
+Mail style standard (enforced at generation, reminded here):
+  - Short, simple, non-technical
+  - 2-3 sentences: general cause + action taken + result
+  - Always end with confirmation request to client
+  - Language: DE → Deutsch | FR → Français | all others → English
 """
 
 import re
@@ -225,6 +231,14 @@ def run():
         errors += len(bad)
     else:
         print("    ✅  All bookings correctly formatted.")
+
+    # 6. Mail style reminder
+    print(f"\n📧  MAIL STYLE REMINDER")
+    print( "    Every response mail must be:")
+    print( "    • Short and non-technical (no error codes, no service names)")
+    print( "    • Structure: general cause → action taken → result")
+    print( "    • End with confirmation request to client")
+    print( "    • Language: DE→Deutsch | FR→Français | all others→English")
 
     print(f"\n{sep}")
     print(f"  {'⚠️  ' + str(errors) + ' issue(s) require attention.' if errors else '🎉  All checks passed.'}")
