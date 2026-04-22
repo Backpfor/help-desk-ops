@@ -15,7 +15,7 @@
 | Wie? | `Phone` / `Email` / `Onsite` |
 | Kunde/Errichter | `Lidl/[Firma]` · `Primark/[Firma]` · nur `Lidl` · Telefonnummer |
 | Lösungsweg | Schritte mit `->` trennen |
-| Sprache | DE / CH / AT → Deutsch · alle anderen → Englisch |
+| Sprache | DE → Deutsch · FR → Français · alle anderen → Englisch |
 | Mail-Betreff | Am Ende in `"..."` · fehlt → `"FILLER BETREFF"` |
 
 ## Beispiele
